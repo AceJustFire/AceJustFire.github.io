@@ -365,7 +365,7 @@ const COMPETENCES = [
       },
       {
         code: "AC12.03",
-        label: "Mettre en place un réseau local",
+        label: "Déployez des supports de transmission",
         reflexive: {
           fait: "J'ai conçu et déployé des topologies réseau complètes : plan d'adressage, câblage, configuration des équipements, tests de connectivité.",
           pourquoi: "Mettre en place un réseau de bout en bout intègre toutes les compétences de connexion : c'est l'application concrète des apprentissages théoriques.",
