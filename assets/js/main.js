@@ -506,3 +506,152 @@ const COMPETENCES = [
   const modalHTML = `
         <div id="portfolio-modal" class="glass-modal">
           <div class="glass-modal-content">
+           <button class="close-modal" onclick="closeCompetenceModal()"><i class="bi bi-x-lg"></i></button>
+            <div class="glass-modal-header">
+              <img id="modal-img" src="" alt="">
+              <h3 id="modal-title"></h3>
+            </div>
+            <div class="glass-modal-body">
+              <h5><i class="bi bi-list-ul"></i> Apprentissages Critiques & SAÉ</h5>
+              <div id="modal-ac-list" class="ac-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="portfolio-reflexive-modal" class="glass-modal">
+          <div class="glass-modal-content" style="max-width: 900px; max-height: 95vh;">
+            <button class="close-modal" onclick="closeReflexiveModal()"><i class="bi bi-arrow-left"></i></button>
+            <div class="glass-modal-body" style="padding: 40px 30px;">
+              <h4 id="ref-ac-code" style="color: #a8b2ff; font-weight: 700; margin-bottom: 5px;"></h4>
+              <h3 id="ref-ac-label" style="color: white; font-size: 1.3rem; margin-bottom: 30px;"></h3>
+              
+              <div id="reflexive-grid" class="reflexive-grid"></div>
+
+              <div id="reflexive-project" class="reflexive-project mt-4"></div>
+            </div>
+          </div>
+        </div>
+      `;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+  // Level 2: Open Competence (AC List)
+  window.openCompetenceModal = function (id) {
+    const comp = COMPETENCES.find(c => c.id === id);
+    if (!comp) return;
+
+    // Ensure we handle both 'dropdownItems' (old) and 'ac' (new) just in case
+    const acList = comp.ac || comp.dropdownItems || [];
+
+    const itemsHtml = acList.map(function (item, index) {
+      const code = item.code ? `<span class="ac-code-badge" style="background: ${comp.color}22; color: ${comp.color}; border: 1px solid ${comp.color}44;">${item.code}</span>` : '';
+      const label = item.label || item; // Fallback
+
+      return `<div class="ac-item" style="cursor: pointer;" onclick="openReflexiveModal('${comp.id}', ${index})">
+                   <div style="display: flex; align-items: center; justify-content: space-between;">
+                     <div>${code} <span style="font-size: 0.95rem; font-weight: 500; color: rgba(255,255,255,0.95);">${label}</span></div>
+                     <i class="bi bi-chevron-right" style="color: rgba(255,255,255,0.3);"></i>
+                   </div>
+                 </div>`;
+    }).join('');
+
+    document.getElementById('modal-img').src = comp.image;
+    document.getElementById('modal-title').innerText = comp.titre;
+    document.getElementById('modal-ac-list').innerHTML = itemsHtml || `<div class="ac-empty-msg" style="color: rgba(255,255,255,0.6); padding: 15px; text-align: center; font-style: italic; border: 1px dashed rgba(255,255,255,0.15); border-radius: 8px;">Aucun apprentissage critique à afficher pour le moment.</div>`;
+
+    document.getElementById('portfolio-modal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeCompetenceModal = function () {
+    document.getElementById('portfolio-modal').classList.remove('active');
+    document.body.style.overflow = '';
+  };
+
+  // Level 3: Open Reflexive Details
+  window.openReflexiveModal = function (compId, acIndex) {
+    const comp = COMPETENCES.find(c => c.id === compId);
+    if (!comp) return;
+    const ac = (comp.ac || comp.dropdownItems)[acIndex];
+    if (!ac || !ac.reflexive) return;
+
+    const r = ac.reflexive;
+
+    document.getElementById('ref-ac-code').innerText = ac.code;
+    document.getElementById('ref-ac-code').style.color = comp.color;
+    document.getElementById('ref-ac-label').innerText = ac.label;
+
+    const questions = [
+      { icon: 'bi-check2-circle', title: 'Ce que j\'ai fait', text: r.fait },
+      { icon: 'bi-question-circle', title: 'Pourquoi je l\'ai fait', text: r.pourquoi },
+      { icon: 'bi-tools', title: 'Comment je l\'ai fait', text: r.comment },
+      { icon: 'bi-exclamation-triangle', title: 'Mes difficultés', text: r.difficultes },
+      { icon: 'bi-lightbulb', title: 'Ce que j\'en ai appris', text: r.appris },
+      { icon: 'bi-arrow-repeat', title: 'Ce que je ferais autrement', text: r.autrement },
+    ];
+
+    document.getElementById('reflexive-grid').innerHTML = questions.map(q => `
+          <div class="ref-card">
+            <div class="ref-card-icon"><i class="bi ${q.icon}"></i></div>
+            <h5>${q.title}</h5>
+            <p>${q.text}</p>
+          </div>
+        `).join('');
+
+    if (r.projet) {
+      const lienHtml = r.projet.lien 
+        ? `<a href="${r.projet.lien}" target="_blank" style="color: #a8b2ff; text-decoration: underline;"><strong>${r.projet.titre}</strong> <i class="bi bi-box-arrow-up-right" style="font-size: 0.8rem;"></i></a>` 
+        : `<strong style="color: #fff;">${r.projet.titre}</strong>`;
+
+      document.getElementById('reflexive-project').innerHTML = `
+            <h5><i class="bi bi-paperclip"></i> Pièce jointe / Projet lié</h5>
+            <p>
+              ${lienHtml}<br>
+              <span style="color: rgba(255,255,255,0.7); font-size: 0.9rem;">${r.projet.desc}</span>
+            </p>
+          `;
+    } else {
+      document.getElementById('reflexive-project').innerHTML = '';
+    }
+
+    // Hide Level 2 modal, Show Level 3 modal
+    document.getElementById('portfolio-modal').classList.remove('active');
+    document.getElementById('portfolio-reflexive-modal').classList.add('active');
+  };
+
+  window.closeReflexiveModal = function () {
+    document.getElementById('portfolio-reflexive-modal').classList.remove('active');
+    // Re-show Level 2 modal
+    document.getElementById('portfolio-modal').classList.add('active');
+  };
+
+  // Close on outside click
+  document.getElementById('portfolio-modal').addEventListener('click', function (e) {
+    if (e.target === this) closeCompetenceModal();
+  });
+  document.getElementById('portfolio-reflexive-modal').addEventListener('click', function (e) {
+    if (e.target === this) {
+      document.getElementById('portfolio-reflexive-modal').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Render cards
+  COMPETENCES.forEach(function (comp) {
+    const col = document.createElement('div');
+    col.className = 'col-lg-4 col-md-6 portfolio-item';
+    col.setAttribute('data-aos', 'fade-up');
+    col.innerHTML =
+      '<div class="portfolio-card premium-click" onclick="openCompetenceModal(\'' + comp.id + '\')">' +
+      '<div class="portfolio-image-wrapper">' +
+      '<img src="' + comp.image + '" alt="' + comp.titre + '" class="img-fluid">' +
+      '</div>' +
+      '<div class="portfolio-overlay">' +
+      '<h4>' + comp.titre + '</h4>' +
+      '<p>' + comp.description + '</p>' +
+      '<div class="click-hint"><i class="bi bi-arrow-up-right-circle"></i> Voir les détails</div>' +
+      '</div>' +
+      '</div>';
+
+    grid.appendChild(col);
+  });
+})();
